@@ -3,8 +3,11 @@
 [![CI](https://github.com/swayam16/Predictive-and-Prescriptive-Analytics-Model/actions/workflows/ci.yml/badge.svg)](https://github.com/swayam16/Predictive-and-Prescriptive-Analytics-Model/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://predictive-and-prescriptive-analytics-model-ggf6l4gyp69hzytspp.streamlit.app/)
 
 **Python · scikit-learn · SQL · Pandas · Matplotlib · Streamlit**
+
+**Live demo: [predictive-and-prescriptive-analytics-model-ggf6l4gyp69hzytspp.streamlit.app](https://predictive-and-prescriptive-analytics-model-ggf6l4gyp69hzytspp.streamlit.app/)**
 
 A retention team can make **500 calls a month** to ~9,800 active customers, of whom ~600 will
 cancel in the next 60 days. This project answers two questions:
@@ -153,6 +156,8 @@ streamlit run app/streamlit_app.py
 on every push and fails if the headline metrics drift from the committed `reports/metrics.json`.
 
 ### Interactive demo
+
+**Try it live: [Streamlit app](https://predictive-and-prescriptive-analytics-model-ggf6l4gyp69hzytspp.streamlit.app/)**
 
 The Streamlit app has three tabs: the **call list** for the live month (adjust capacity, save rate, cost
 and horizon in the sidebar, then download the CSV), a **back-test** of every policy at those settings,
