@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Lint and tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -e ".[dev,app]"
+      - name: Ruff
+        run: ruff check . && ruff format --check .
+      - name: Pytest
+        run: pytest
+
+  reproduce:
+    name: Full pipeline reproduces the README numbers
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - run: churnpolicy run
+      - name: Check results against the committed metrics
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          new = json.load(open("reports/metrics.json"))
+          old = json.loads(subprocess.check_output(["git", "show", "HEAD:reports/metrics.json"]))
+          def get(m, *keys):
+              for k in keys:
+                  m = m[k]
+              return m
+          checks = [
+              ("holdout", "rows", "model_matched_volume", "pr_auc"),
+              ("holdout", "rows", "model_matched_volume", "precision"),
+              ("holdout", "rows", "heuristic", "precision"),
+          ]
+          bad = []
+          for keys in checks:
+              a, b = get(old, *keys), get(new, *keys)
+              print(".".join(keys), f"committed={a:.4f} rerun={b:.4f}")
+              if abs(a - b) > 0.02:
+                  bad.append(keys)
+          pol = {r["policy"]: r["net_value"] for r in new["policy"]["summary"]}
+          assert pol["expected_value"] > pol["top_risk"] > pol["heuristic"] > pol["random"], pol
+          assert not bad, f"metrics drifted: {bad}"
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/

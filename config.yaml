@@ -1,0 +1,50 @@
+# Every number the pipeline uses lives here, so a run is reproducible from this file alone.
+
+paths:
+  db: data/warehouse.db
+  artifacts: artifacts
+  reports: reports
+
+simulation:
+  seed: 7
+  n_customers: 16000
+  start_month: "2024-10"      # first month of recorded history
+  n_months: 24                # history runs through 2026-09
+  price_increase_month: 12    # list-price increase in 2025-10 (basic and pro)
+  price_increase_pct: 0.12
+
+snapshots:
+  # A snapshot is the 1st of a month. Features use only data before it;
+  # the label is "cancels within the next 60 days".
+  first: "2025-04-01"
+  last_labelled: "2026-08-01"
+  train_last: "2026-04-01"    # train on Apr 2025 to Apr 2026
+  test_first: "2026-06-01"    # one-month gap so train labels never overlap the test window
+  score: "2026-10-01"         # the live decision date: scored, no label yet
+  label_days: 60
+
+cv:
+  n_splits: 5
+  seed: 11
+
+model:
+  candidates: [logistic_regression, gradient_boosting]
+  gradient_boosting:
+    learning_rate: 0.06
+    max_iter: 350
+    max_leaf_nodes: 31
+    min_samples_leaf: 80
+    l2_regularization: 1.0
+  logistic_regression:
+    C: 0.5
+
+importance:
+  n_repeats: 10
+  scoring: average_precision
+
+policy:
+  capacity: 500              # retention calls the team can make per month
+  save_rate: 0.30            # share of contacted would-be churners who stay
+  contact_cost: 40           # dollars per call (agent time plus offer)
+  value_horizon_months: 12   # revenue protected by a save
+  sweep: [100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000]
